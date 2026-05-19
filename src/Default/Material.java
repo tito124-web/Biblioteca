@@ -1,5 +1,5 @@
 package Default;
 
-public class Material {
+public abstract class Material {
 
 }
