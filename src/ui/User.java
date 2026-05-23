@@ -1,13 +1,17 @@
 package ui;
 
 import java.awt.*;
+import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+
+import Usuario.GestorUser;
+import Usuario.Student;
+import Usuario.Teacher;
 
 public class User extends JFrame {
     private static final long serialVersionUID = 1L;
     
-    // Colores consistentes con MainFrame
     private static final Color COLOR_PRIMARY = new Color(55, 80, 80);
     private static final Color COLOR_SECONDARY = new Color(100, 100, 100);
     private static final Color COLOR_HOVER = new Color(110, 110, 110);
@@ -19,23 +23,23 @@ public class User extends JFrame {
     private JPanel contentPane;
     private JTextField txtFieldCarnet;
     private JTextField textFieldNombre;
-    private JTextField textFieldCarrera;
+    private JTextField textFieldExtra; // Sirve para Carrera o Departamento
+    private JComboBox<String> comboTipo; // Filtro de Selección de tipo
+    private JLabel lblExtraLabel; // Cambia dinámicamente el texto de la etiqueta
     private JTable table;
     private DefaultTableModel model;
     private JLabel lblError;
 
-    public static void main(String[] args) {
-        EventQueue.invokeLater(() -> {
-            try {
-                User frame = new User();
-                frame.setVisible(true);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
+    private GestorUser gestorUser; 
+
+    // Constructor vacío para compatibilidad con MainFrame
+    public User() {
+        this(new GestorUser()); 
     }
 
-    public User() {
+    public User(GestorUser gestorUser) {
+        this.gestorUser = gestorUser;
+     
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(900, 650);
         setLocationRelativeTo(null);
@@ -46,25 +50,22 @@ public class User extends JFrame {
         setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout(0, 0));
         
-        // Banner
         contentPane.add(crearBanner(), BorderLayout.NORTH);
         
-        // Contenido principal
         JPanel panelContenido = new JPanel();
         panelContenido.setLayout(new BorderLayout(20, 20));
         panelContenido.setBackground(COLOR_BACKGROUND);
         panelContenido.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
-        // Panel izquierdo (botones)
         panelContenido.add(crearPanelBotones(), BorderLayout.WEST);
-        
-        // Panel derecho (formulario + tabla)
         panelContenido.add(crearPanelPrincipal(), BorderLayout.CENTER);
         
         contentPane.add(panelContenido, BorderLayout.CENTER);
+
+        // Cargar los datos desde el archivo CSV al iniciar la interfaz
+        cargarTabla();
     }
     
-    //  BANNER 
     private JPanel crearBanner() {
         JPanel banner = new JPanel();
         banner.setBackground(COLOR_PRIMARY);
@@ -80,7 +81,6 @@ public class User extends JFrame {
         return banner;
     }
     
-    // PANEL BOTONES (IZQUIERDA) 
     private JPanel crearPanelBotones() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -91,9 +91,8 @@ public class User extends JFrame {
         btnInicio.addActionListener(e -> {
             MainFrame win1 = new MainFrame();
             win1.setVisible(true);
-            dispose(); // cierra la actual
+            dispose(); 
         });
-        
         
         panel.add(btnInicio);
         panel.add(Box.createVerticalGlue());
@@ -101,37 +100,43 @@ public class User extends JFrame {
         return panel;
     }
     
-    // PANEL PRINCIPAL (FORMULARIO + TABLA) 
     private JPanel crearPanelPrincipal() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout(0, 15));
         panel.setOpaque(false);
         
-        // Formulario
         panel.add(crearPanelFormulario(), BorderLayout.NORTH);
-        
-        // Tabla
         panel.add(crearPanelTabla(), BorderLayout.CENTER);
         
         return panel;
     }
     
-    // PANEL FORMULARIO 
     private JPanel crearPanelFormulario() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // TÍTULO
         JLabel titulo = new JLabel("Agregar Usuario");
         titulo.setFont(new Font("Arial", Font.BOLD, 16));
         titulo.setForeground(COLOR_PRIMARY);
         
-        // PANEL DE CAMPOS
         JPanel panelCampos = new JPanel();
-        panelCampos.setLayout(new GridLayout(3, 2, 15, 10));
+        panelCampos.setLayout(new GridLayout(4, 2, 15, 10)); // Cambiado a 4 filas para el ComboBox
         panelCampos.setOpaque(false);
+        
+        // Selector de tipo
+        panelCampos.add(crearLabel("Tipo de Usuario"));
+        comboTipo = new JComboBox<>(new String[]{"STUDENT", "TEACHER"});
+        comboTipo.setFont(new Font("Arial", Font.PLAIN, 11));
+        comboTipo.addActionListener(e -> {
+            if (comboTipo.getSelectedItem().equals("STUDENT")) {
+                lblExtraLabel.setText("Carrera");
+            } else {
+                lblExtraLabel.setText("Departamento");
+            }
+        });
+        panelCampos.add(comboTipo);
         
         // Campo Carnet
         panelCampos.add(crearLabel("Carnet"));
@@ -143,12 +148,12 @@ public class User extends JFrame {
         textFieldNombre = crearTextField();
         panelCampos.add(textFieldNombre);
         
-        // Campo Carrera
-        panelCampos.add(crearLabel("Carrera"));
-        textFieldCarrera = crearTextField();
-        panelCampos.add(textFieldCarrera);
+        // Campo Variable (Carrera o Departamento)
+        lblExtraLabel = crearLabel("Carrera");
+        panelCampos.add(lblExtraLabel);
+        textFieldExtra = crearTextField();
+        panelCampos.add(textFieldExtra);
         
-        // PANEL BOTÓN + ERRORES
         JPanel panelAccion = new JPanel();
         panelAccion.setLayout(new BorderLayout(10, 0));
         panelAccion.setOpaque(false);
@@ -164,7 +169,6 @@ public class User extends JFrame {
         panelAccion.add(btnAgregar, BorderLayout.WEST);
         panelAccion.add(lblError, BorderLayout.CENTER);
         
-        // ARMAR TODO
         JPanel contenedor = new JPanel();
         contenedor.setLayout(new BorderLayout(0, 15));
         contenedor.setOpaque(false);
@@ -178,25 +182,26 @@ public class User extends JFrame {
         return panel;
     }
     
-    //  PANEL TABLA 
     private JPanel crearPanelTabla() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
-        // TÍTULO
         JLabel titulo = new JLabel("Usuarios Registrados");
         titulo.setFont(new Font("Arial", Font.BOLD, 16));
         titulo.setForeground(COLOR_PRIMARY);
         
         panel.add(titulo, BorderLayout.NORTH);
         
-        // TABLA
+        //Definimos las 6 columnas completas requeridas por la lógica
         model = new DefaultTableModel();
+        model.addColumn("Tipo");
         model.addColumn("Carnet");
         model.addColumn("Nombre");
-        model.addColumn("Carrera");
+        model.addColumn("Carrera/Depto");
+        model.addColumn("Préstamos");
+        model.addColumn("Máx.");
         
         table = new JTable(model);
         table.setFont(new Font("Arial", Font.PLAIN, 11));
@@ -213,8 +218,6 @@ public class User extends JFrame {
         
         return panel;
     }
-    
-    //  MÉTODOS AUXILIARES 
     
     private JButton crearBoton(String texto) {
         JButton boton = new JButton(texto);
@@ -253,68 +256,104 @@ public class User extends JFrame {
         return label;
     }
     
-    // VALIDACIONES Y LÓGICA 
-    
     private void agregarUsuario() {
+        String tipo = comboTipo.getSelectedItem().toString();
         String carnet = txtFieldCarnet.getText().trim();
         String nombre = textFieldNombre.getText().trim();
-        String carrera = textFieldCarrera.getText().trim();
+        String extra = textFieldExtra.getText().trim();
         
-        // Limpiar mensaje de error
         lblError.setText("");
         
-        // Validaciones
-        if (carnet.isEmpty()) {
-            mostrarError(" El carnet no puede estar vacío");
+        // Validaciones generales
+        if (carnet.isEmpty() || nombre.isEmpty() || extra.isEmpty()) {
+            mostrarError("Todos los campos son obligatorios.");
             return;
         }
         
-        if (nombre.isEmpty()) {
-            mostrarError("El nombre no puede estar vacío");
+        if (!carnet.matches("[a-zA-Z0-9-]+")) {
+            mostrarError("El carnet solo puede contener letras, números y guiones.");
             return;
         }
         
-        if (carrera.isEmpty()) {
-            mostrarError("La carrera no puede estar vacía");
+        if (!nombre.matches("[a-zA-ZáéíóúÁÉÍÓÚñÑ\\s]+")) {
+            mostrarError("El nombre solo puede contener letras.");
             return;
         }
         
-        // Validar que el carnet sea alfanumérico
-        if (!carnet.matches("[a-zA-Z0-9]+")) {
-            mostrarError("El carnet solo puede contener letras y números");
+        // Validar duplicados mediante el Backend
+        if (gestorUser.existsId(carnet)) {
+            mostrarError("El carnet ya está registrado.");
             return;
         }
         
-        // Validar que el nombre solo tenga letras y espacios
-        if (!nombre.matches("[a-zA-Záéíóú\\s]+")) {
-            mostrarError("El nombre solo puede contener letras");
-            return;
-        }
-        
-        // Validar que no exista carnet duplicado
-        for (int i = 0; i < model.getRowCount(); i++) {
-            if (model.getValueAt(i, 0).toString().equals(carnet)) {
-                mostrarError("El carnet ya existe");
-                return;
+        try {
+            if (tipo.equals("STUDENT")) {
+                Student nuevoEstudiante = new Student(nombre, carnet, extra);
+                gestorUser.add(nuevoEstudiante);
+            } else {
+                Teacher nuevoProfesor = new Teacher(nombre, carnet, extra);
+                gestorUser.add(nuevoProfesor);
             }
+            
+            // Guardar cambios en el backend
+            gestorUser.save();
+            
+            // Limpiar la tabla visual y recargar todo desde cero de forma limpia
+            cargarTabla();
+            
+            // Limpiar cajas de texto
+            txtFieldCarnet.setText("");
+            textFieldNombre.setText("");
+            textFieldExtra.setText("");
+            
+            lblError.setText("Usuario registrado y guardado exitosamente.");
+            lblError.setForeground(COLOR_SUCCESS);
+            
+        } catch (IllegalArgumentException ex) {
+            mostrarError(ex.getMessage());
+        } catch (IOException ioEx) {
+            mostrarError("Error crítico al guardar en el archivo CSV.");
+            ioEx.printStackTrace();
         }
-        
-        // Si todo está OK, agregar a la tabla
-        model.addRow(new Object[] {carnet, nombre, carrera});
-        
-        // Limpiar campos
-        txtFieldCarnet.setText("");
-        textFieldNombre.setText("");
-        textFieldCarrera.setText("");
-        
-        // Mensaje de éxito
-        lblError.setText(" Usuario agregado correctamente");
-        lblError.setForeground(COLOR_SUCCESS);
     }
     
+    private void cargarTabla() {
+        // Limpiamos las filas actuales del modelo para evitar duplicación visual
+        model.setRowCount(0);
+        
+        try {
+            gestorUser.load();
+        } catch (IOException e) {
+            System.out.println("No hay datos previos.");
+        }
+
+        for (Usuario.User u : gestorUser.getUsers()) {
+            if (u instanceof Student) {
+                Student s = (Student) u;
+                model.addRow(new Object[]{
+                    "Estudiante", 
+                    s.getId(), 
+                    s.getName(), 
+                    s.getMajor(),
+                    s.getActiveLoans() + "/" + s.getMaxLoans(),
+                    s.getMaxLoans()
+                });
+            } else if (u instanceof Teacher) {
+                Teacher t = (Teacher) u;
+                model.addRow(new Object[]{
+                    "Docente", 
+                    t.getId(), 
+                    t.getName(), 
+                    t.getDepartment(),
+                    t.getActiveLoans() + "/" + t.getMaxLoans(),
+                    t.getMaxLoans()
+                });
+            }
+        }
+    }
+
     private void mostrarError(String mensaje) {
         lblError.setText(mensaje);
         lblError.setForeground(COLOR_ERROR);
     }
-    
 }
