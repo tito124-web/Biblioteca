@@ -74,7 +74,7 @@ public class MainFrame extends JFrame {
         panel.add(menuLabel);
         panel.add(Box.createVerticalStrut(25));
 
-        panel.add(crearFila("Catálogo", "Ver y buscar libros disponibles."));
+        panel.add(crearFilaCatalogo());
         panel.add(Box.createVerticalStrut(22));
 
         panel.add(crearFilaUsuarios()); //  ESTE ES IMPORTANTE
@@ -102,7 +102,7 @@ public class MainFrame extends JFrame {
 
         return fila;
     }
-
+    
     //  FILA USUARIOS (CON ACCIÓN)
     private JPanel crearFilaUsuarios() {
         JPanel fila = new JPanel(new BorderLayout(12, 0));
@@ -124,6 +124,36 @@ public class MainFrame extends JFrame {
 
         return fila;
     }
+
+//  FILA CATÁLOGO (CON ACCIÓN)
+private JPanel crearFilaCatalogo() {
+
+    JPanel fila = new JPanel(new BorderLayout(12, 0));
+
+    fila.setOpaque(false);
+
+    fila.setMaximumSize(new Dimension(350, 60));
+
+    JButton boton = crearBoton("Catálogo");
+
+    boton.addActionListener(e -> {
+
+        new Catalog().setVisible(true);
+
+        dispose();
+    });
+
+    JLabel descripcion = new JLabel(
+            "<html><p style='font-size:10px;'>Ver y buscar libros disponibles.</p></html>");
+
+    descripcion.setForeground(new Color(120, 120, 120));
+
+    fila.add(boton, BorderLayout.WEST);
+
+    fila.add(descripcion, BorderLayout.CENTER);
+
+    return fila;
+}
 
     private JButton crearBoton(String texto) {
         JButton boton = new JButton(texto);
