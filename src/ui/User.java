@@ -12,6 +12,7 @@ import Usuario.Teacher;
 public class User extends JFrame {
     private static final long serialVersionUID = 1L;
     
+    // Colores consistentes con MainFrame
     private static final Color COLOR_PRIMARY = new Color(55, 80, 80);
     private static final Color COLOR_SECONDARY = new Color(100, 100, 100);
     private static final Color COLOR_HOVER = new Color(110, 110, 110);
@@ -41,7 +42,7 @@ public class User extends JFrame {
         this.gestorUser = gestorUser;
      
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(900, 650);
+        setSize(950, 650);
         setLocationRelativeTo(null);
         setTitle("Gestión de Usuarios");
         
@@ -50,14 +51,19 @@ public class User extends JFrame {
         setContentPane(contentPane);
         contentPane.setLayout(new BorderLayout(0, 0));
         
+        // Banner
         contentPane.add(crearBanner(), BorderLayout.NORTH);
         
+        // Contenido principal
         JPanel panelContenido = new JPanel();
         panelContenido.setLayout(new BorderLayout(20, 20));
         panelContenido.setBackground(COLOR_BACKGROUND);
         panelContenido.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
         
+        // Panel izquierdo (botones)
         panelContenido.add(crearPanelBotones(), BorderLayout.WEST);
+        
+        // Panel derecho (formulario + tabla)
         panelContenido.add(crearPanelPrincipal(), BorderLayout.CENTER);
         
         contentPane.add(panelContenido, BorderLayout.CENTER);
@@ -66,6 +72,7 @@ public class User extends JFrame {
         cargarTabla();
     }
     
+    //  BANNER 
     private JPanel crearBanner() {
         JPanel banner = new JPanel();
         banner.setBackground(COLOR_PRIMARY);
@@ -81,6 +88,7 @@ public class User extends JFrame {
         return banner;
     }
     
+    // PANEL BOTONES (IZQUIERDA) 
     private JPanel crearPanelBotones() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -100,29 +108,36 @@ public class User extends JFrame {
         return panel;
     }
     
+    // PANEL PRINCIPAL (FORMULARIO + TABLA) 
     private JPanel crearPanelPrincipal() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout(0, 15));
         panel.setOpaque(false);
         
+        // Formulario
         panel.add(crearPanelFormulario(), BorderLayout.NORTH);
+        
+        // Tabla
         panel.add(crearPanelTabla(), BorderLayout.CENTER);
         
         return panel;
     }
     
+    // PANEL FORMULARIO 
     private JPanel crearPanelFormulario() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
+        // TÍTULO
         JLabel titulo = new JLabel("Agregar Usuario");
         titulo.setFont(new Font("Arial", Font.BOLD, 16));
         titulo.setForeground(COLOR_PRIMARY);
         
+        // PANEL DE CAMPOS
         JPanel panelCampos = new JPanel();
-        panelCampos.setLayout(new GridLayout(4, 2, 15, 10)); // Cambiado a 4 filas para el ComboBox
+        panelCampos.setLayout(new GridLayout(4, 2, 15, 10)); 
         panelCampos.setOpaque(false);
         
         // Selector de tipo
@@ -154,21 +169,32 @@ public class User extends JFrame {
         textFieldExtra = crearTextField();
         panelCampos.add(textFieldExtra);
         
+        // PANEL BOTÓN + ERRORES
         JPanel panelAccion = new JPanel();
         panelAccion.setLayout(new BorderLayout(10, 0));
         panelAccion.setOpaque(false);
         
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setOpaque(false);
         JButton btnAgregar = crearBoton("Agregar");
-        btnAgregar.setPreferredSize(new Dimension(120, 40));
+        JButton btnEliminar = crearBoton("Eliminar");
+        
+        btnEliminar.setBackground(COLOR_ERROR);
+        
+        buttonPanel.add(btnAgregar);
+        buttonPanel.add(btnEliminar);
+        
         btnAgregar.addActionListener(e -> agregarUsuario());
+        btnEliminar.addActionListener(e -> eliminarUsuario());
         
         lblError = new JLabel();
         lblError.setFont(new Font("Arial", Font.PLAIN, 11));
         lblError.setForeground(COLOR_ERROR);
         
-        panelAccion.add(btnAgregar, BorderLayout.WEST);
+        panelAccion.add(buttonPanel, BorderLayout.WEST);
         panelAccion.add(lblError, BorderLayout.CENTER);
         
+        // ARMAR TODO
         JPanel contenedor = new JPanel();
         contenedor.setLayout(new BorderLayout(0, 15));
         contenedor.setOpaque(false);
@@ -182,19 +208,21 @@ public class User extends JFrame {
         return panel;
     }
     
+    //  PANEL TABLA 
     private JPanel crearPanelTabla() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
         panel.setBackground(Color.WHITE);
         panel.setBorder(BorderFactory.createEmptyBorder(15, 15, 15, 15));
         
+        // TÍTULO
         JLabel titulo = new JLabel("Usuarios Registrados");
         titulo.setFont(new Font("Arial", Font.BOLD, 16));
         titulo.setForeground(COLOR_PRIMARY);
         
         panel.add(titulo, BorderLayout.NORTH);
         
-        //Definimos las 6 columnas completas requeridas por la lógica
+        // TABLA
         model = new DefaultTableModel();
         model.addColumn("Tipo");
         model.addColumn("Carnet");
@@ -211,6 +239,14 @@ public class User extends JFrame {
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 11));
         table.setSelectionBackground(new Color(52, 152, 219));
         
+        table.getSelectionModel().addListSelectionListener(e -> {
+            int filaSeleccionada = table.getSelectedRow();
+            if (filaSeleccionada != -1) {
+                String carnet = model.getValueAt(filaSeleccionada, 1).toString();
+                txtFieldCarnet.setText(carnet);
+            }
+        });
+        
         JScrollPane scrollPane = new JScrollPane(table);
         scrollPane.setBorder(BorderFactory.createLineBorder(new Color(200, 200, 200), 1));
         
@@ -218,6 +254,8 @@ public class User extends JFrame {
         
         return panel;
     }
+    
+    //  MÉTODOS AUXILIARES 
     
     private JButton crearBoton(String texto) {
         JButton boton = new JButton(texto);
@@ -231,10 +269,16 @@ public class User extends JFrame {
         
         boton.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                boton.setBackground(COLOR_HOVER);
+                if (!boton.getText().equals("Eliminar")) {
+                    boton.setBackground(COLOR_HOVER);
+                }
             }
             public void mouseExited(java.awt.event.MouseEvent evt) {
-                boton.setBackground(COLOR_PRIMARY);
+                if (!boton.getText().equals("Eliminar")) {
+                    boton.setBackground(COLOR_PRIMARY);
+                } else {
+                    boton.setBackground(COLOR_ERROR);
+                }
             }
         });
         
@@ -255,6 +299,8 @@ public class User extends JFrame {
         label.setForeground(COLOR_SECONDARY);
         return label;
     }
+    
+    // VALIDACIONES Y LÓGICA 
     
     private void agregarUsuario() {
         String tipo = comboTipo.getSelectedItem().toString();
@@ -317,6 +363,36 @@ public class User extends JFrame {
         }
     }
     
+    private void eliminarUsuario() {
+        String carnet = txtFieldCarnet.getText().trim();
+        lblError.setText("");
+
+        if (carnet.isEmpty()) {
+            mostrarError("Selecciona un usuario de la tabla.");
+            return;
+        }
+        int conf = JOptionPane.showConfirmDialog(this, "¿Deseas eliminar el usuario?", "Confirmar", JOptionPane.YES_NO_OPTION);
+        if (conf == JOptionPane.YES_OPTION) {
+            if (gestorUser.remove(carnet)) {
+                try {
+                    gestorUser.save();
+                    cargarTabla();
+                    txtFieldCarnet.setText("");
+                    textFieldNombre.setText("");
+                    textFieldExtra.setText("");
+                    table.clearSelection();
+                    lblError.setText("Usuario eliminado correctamente.");
+                    lblError.setForeground(COLOR_SUCCESS);
+                } catch (IOException e) {
+                    mostrarError("Error al actualizar el archivo.");
+                }
+            } else {
+                mostrarError("No se encontró el carnet.");
+            }
+        }
+    }
+    
+    // Carga los usuarios del CSV a la tabla al abrir la ventana
     private void cargarTabla() {
         // Limpiamos las filas actuales del modelo para evitar duplicación visual
         model.setRowCount(0);

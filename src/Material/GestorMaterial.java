@@ -49,6 +49,16 @@ public class GestorMaterial {
     public boolean existeCodigo(String code) {
         return buscarPorCodigo(code) != null;
     }
+    
+ // Eliminar material por codigo
+    public boolean eliminar(String code) {
+        Material m = buscarPorCodigo(code);
+        if (m != null) {
+            materiales.remove(m);
+            return true;
+        }
+        return false;
+    }
 
     // Guardar ArrayList en CSV
     public void guardar() throws IOException {
