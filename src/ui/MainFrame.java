@@ -80,7 +80,7 @@ public class MainFrame extends JFrame {
         panel.add(crearFilaUsuarios()); //  ESTE ES IMPORTANTE
         panel.add(Box.createVerticalStrut(22));
 
-        panel.add(crearFila("Préstamos", "Administrar préstamos y devoluciones."));
+        panel.add(crearFilaPrestamos());
         panel.add(Box.createVerticalGlue());
 
         return panel;
@@ -179,6 +179,38 @@ private JPanel crearFilaCatalogo() {
         return boton;
     }
 
+ // FILA PRÉSTAMOS (CON ACCIÓN)
+    private JPanel crearFilaPrestamos() {
+
+        JPanel fila = new JPanel(new BorderLayout(12, 0));
+
+        fila.setOpaque(false);
+
+        fila.setMaximumSize(new Dimension(350, 60));
+
+        JButton boton = crearBoton("Préstamos");
+
+        // Acción del botón
+        boton.addActionListener(e -> {
+
+            new Loans().setVisible(true);
+
+            dispose();
+        });
+
+        JLabel descripcion = new JLabel(
+                "<html><p style='font-size:10px;'>Administrar préstamos y devoluciones.</p></html>");
+
+        descripcion.setForeground(new Color(120, 120, 120));
+
+        fila.add(boton, BorderLayout.WEST);
+
+        fila.add(descripcion, BorderLayout.CENTER);
+
+        return fila;
+    }
+    
+    
     private JPanel crearPanelDescripcion() {
         JPanel panel = new JPanel(new BorderLayout());
         panel.setBackground(Color.WHITE);
