@@ -1,8 +1,14 @@
 package ui;
 
 import java.awt.*;
+import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+
+import Material.GestorMaterial;
+import Usuario.GestorUser;
+import prestamos.PrestamoDevolver;
+import prestamos.Loan;
 
 public class Loans extends JFrame {
 
@@ -28,7 +34,29 @@ public class Loans extends JFrame {
 
     private JLabel lblError;
 
+    // CONEXIONES CON EL BACKEND DE TU EQUIPO
+    private GestorMaterial gestorMaterial;
+    private GestorUser gestorUser;
+    private PrestamoDevolver prestamoDevolver;
+
     public Loans() {
+        // Inicializamos los gestores y cargamos las bases de datos de disco
+        gestorMaterial = new GestorMaterial();
+        gestorUser = new GestorUser();
+        try {
+            gestorMaterial.cargar();
+            gestorUser.load();
+        } catch (IOException e) {
+            System.out.println("Error al cargar bases de datos auxiliares.");
+        }
+
+        // Inicializamos el controlador de préstamos pasándole los dos gestores
+        prestamoDevolver = new PrestamoDevolver(gestorMaterial, gestorUser);
+        try {
+            prestamoDevolver.load();
+        } catch (IOException e) {
+            System.out.println("No se encontraron préstamos previos.");
+        }
 
         // Configuración principal de ventana
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -55,6 +83,9 @@ public class Loans extends JFrame {
 
         // Agregar al contentPane
         contentPane.add(mainPanel, BorderLayout.CENTER);
+
+        // Cargar las filas existentes desde loans.csv a la JTable
+        actualizarTabla();
     }
 
     private JPanel crearBanner() {
@@ -245,58 +276,84 @@ public class Loans extends JFrame {
             return;
         }
 
-        // Validar carnet
-        if (!carnet.matches("[0-9]+")) { 
+        // Conectar con el backend para validar y aplicar el préstamo
+        String resultadoBackend = prestamoDevolver.Loand(codigo, carnet);
 
-            mostrarMensaje(
-                    "El carnet solo puede contener números.",
-                    COLOR_ERROR);
-
-            return;
+        if (resultadoBackend.startsWith("OK")) {
+            try {
+                // Guardar los cambios inmediatamente en el archivo loans.csv
+                prestamoDevolver.save();
+                
+                // Guardar también los estados actualizados en los archivos de usuarios y materiales
+                gestorMaterial.guardar();
+                gestorUser.save();
+                
+                actualizarTabla();
+                limpiarCampos();
+                mostrarMensaje(resultadoBackend, COLOR_SUCCESS);
+            } catch (IOException ex) {
+                mostrarMensaje("Error al escribir los archivos de persistencia.", COLOR_ERROR);
+            }
+        } else {
+            // Si el backend arrojó un error (ej. Límiti de libros alcanzado o material no disponible), se muestra en la UI
+            mostrarMensaje(resultadoBackend, COLOR_ERROR);
         }
-
-        // Agregar fila a tabla
-        model.addRow(new Object[]{
-                carnet,
-                nombre,
-                codigo,
-                material,
-                "Activo"
-        });
-
-        // Limpiar campos
-        limpiarCampos();
-
-        // Mensaje éxito
-        mostrarMensaje(
-                "Préstamo registrado exitosamente.",
-                COLOR_SUCCESS);
     }
 
     private void devolverPrestamo() {
 
-        int filaSeleccionada = table.getSelectedRow();
+        String carnet = txtCarnet.getText().trim();
+        String codigo = txtCodigo.getText().trim();
 
-        // Validar selección
-        if (filaSeleccionada == -1) {
+        lblError.setText("");
 
+        if (carnet.isEmpty() || codigo.isEmpty()) {
             mostrarMensaje(
-                    "Seleccione un préstamo en la tabla.",
+                    "Seleccione un préstamo válido en la tabla.",
                     COLOR_ERROR);
-
             return;
         }
 
-        // Cambiar estado
-        model.setValueAt(
-                "Devuelto",
-                filaSeleccionada,
-                4);
+        // Llamar a la lógica de devolución 
+        String resultadoBackend = prestamoDevolver.returnLoan(codigo, carnet);
 
-        // Mensaje éxito
-        mostrarMensaje(
-                "Material devuelto correctamente.",
-                COLOR_SUCCESS);
+        if (resultadoBackend.startsWith("OK")) {
+            try {
+                // Sincronizar cambios borrando el registro de loans.csv
+                prestamoDevolver.save();
+                gestorMaterial.guardar();
+                gestorUser.save();
+                
+                actualizarTabla();
+                limpiarCampos();
+                mostrarMensaje(resultadoBackend, COLOR_SUCCESS);
+            } catch (IOException ex) {
+                mostrarMensaje("Error al actualizar la base de datos.", COLOR_ERROR);
+            }
+        } else {
+            mostrarMensaje(resultadoBackend, COLOR_ERROR);
+        }
+    }
+
+    // Método auxiliar para sincronizar la JTable con el ArrayList de préstamos
+    private void actualizarTabla() {
+        model.setRowCount(0);
+        for (Loan l : prestamoDevolver.getLoans()) {
+            // Buscamos los nombres reales mapeando los ID para renderizarlos 
+            Usuario.User u = gestorUser.findById(l.getUserId());
+            Material.Material m = gestorMaterial.buscarPorCodigo(l.getMaterialCode());
+            
+            String nombreUser = (u != null) ? u.getName() : "Desconocido";
+            String tituloMat = (m != null) ? m.getTitle() : "Desconocido";
+
+            model.addRow(new Object[]{
+                l.getUserId(),
+                nombreUser,
+                l.getMaterialCode(),
+                tituloMat,
+                "Activo"
+            });
+        }
     }
 
     // Método limpiar campos
