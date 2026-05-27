@@ -1,2 +1,3 @@
 TIPO;CODIGO;AÑO;TITULO;AUTOR;DISPONIBLE
-BOOK;001;1954;El señor de los anillos;J.R.R Tolkien;true
+BOOK;001;1954;El señor de los anillos;J.R.R Tolkien;false
+BOOK;002;1864;Memorias del subsuelo;Fiódor Dostoievski;false
