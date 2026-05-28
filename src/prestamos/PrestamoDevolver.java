@@ -1,4 +1,4 @@
-package prestamos;
+	package prestamos;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -84,11 +84,11 @@ public class PrestamoDevolver {
         return "OK: Préstamo registrado hasta " + dueDate;
     }
 
-    // Registra la devolución de un material
+ // Registra la devolución de un material
     public String returnLoan(String materialCode, String userId) {
 
         // Validación 1  verifica que el material exista
-        Material material = gestorMaterial.findByCode(materialCode); // ← cambiado
+        Material material = gestorMaterial.findByCode(materialCode); 
         if (material == null)
             return "Lo sentimos material no encontrado ";
 
@@ -109,6 +109,22 @@ public class PrestamoDevolver {
         if (active == null)
             return "ERROR: Préstamo no encontrado";
 
+        // CÓDIGO DE POLIMORFISMO PARA CALCULAR LA MULTA
+        double multa = 0;
+        try {
+            LocalDate fechaVencimiento = LocalDate.parse(active.getDueDate());
+            LocalDate fechaHoy = LocalDate.now();
+            
+            // Si la fecha actual supera el día límite, se genera retraso
+            if (fechaHoy.isAfter(fechaVencimiento)) {
+                long diferenciaDias = java.time.temporal.ChronoUnit.DAYS.between(fechaVencimiento, fechaHoy);
+                // Polimorfismo puro: calcula según sea libro o revista
+                multa = material.calcularmulta((int) diferenciaDias);
+            }
+        } catch (Exception e) {
+            System.out.println("No se pudo procesar la fecha de la multa.");
+        }
+
         // Marca el material como disponible de nuevo
         material.setDisponible(true);
 
@@ -118,6 +134,11 @@ public class PrestamoDevolver {
 
         // Elimina el préstamo de la lista
         loans.remove(active);
+
+        // Si hay una multa acumulada, se lo advertimos a la interfaz visual
+        if (multa > 0) {
+            return "OK: Material devuelto. ¡Usuario tiene una multa acumulada de: Q" + String.format("%.2f", multa) + "!";
+        }
 
         return "OK: Material devuelto correctamente";
     }
