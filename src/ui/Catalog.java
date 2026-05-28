@@ -4,7 +4,7 @@ import java.awt.*;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
+import Bitacora.GestorBitacora;
 import Material.GestorMaterial;
 import Material.Material;
 import Material.Book;
@@ -258,6 +258,8 @@ public class Catalog extends JFrame {
 
             gestorMaterial.add(nuevoMaterial);   // Agregamos a la lista en memoria
             gestorMaterial.save();               // Persistimos en el archivo CSV
+         // Registrar en la bitácora
+            GestorBitacora.registrar("ALTA_MATERIAL", "Se agrego el codigo: " + codigo + " (" + tipo + ")");
 
             actualizarTabla(gestorMaterial.getMaterials()); // Refrescamos la tabla
             limpiarCampos();
@@ -295,7 +297,10 @@ public class Catalog extends JFrame {
 
             if (eliminado) {
                 try {
-                    gestorMaterial.save();                          // Guardamos los cambios en el CSV
+                    gestorMaterial.save();    
+                 // Registrar en la bitácora
+                    GestorBitacora.registrar("BAJA_MATERIAL", "Se elimino el codigo: " + codigo);
+                    // Guardamos los cambios en el CSV
                     actualizarTabla(gestorMaterial.getMaterials()); // Actualizamos la vista
                     limpiarCampos();
                     mostrarMensaje("Material eliminado correctamente de la base de datos.", COLOR_SUCCESS);

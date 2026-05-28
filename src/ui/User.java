@@ -4,7 +4,7 @@ import java.awt.*;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
+import Bitacora.GestorBitacora;
 import Usuario.GestorUser;
 import Usuario.Student;
 import Usuario.Teacher;
@@ -344,6 +344,9 @@ public class User extends JFrame {
             // Guardar cambios en el backend
             gestorUser.save();
             
+            // Registrar en la bitácora
+            GestorBitacora.registrar("ALTA_USUARIO", "Se registro el carnet: " + carnet + " de tipo " + tipo);
+            
             // Limpiar la tabla visual y recargar todo desde cero de forma limpia
             cargarTabla();
             
@@ -376,6 +379,8 @@ public class User extends JFrame {
             if (gestorUser.remove(carnet)) {
                 try {
                     gestorUser.save();
+                 // Registrar en la bitácora
+                    GestorBitacora.registrar("BAJA_USUARIO", "Se elimino el carnet: " + carnet);
                     cargarTabla();
                     txtFieldCarnet.setText("");
                     textFieldNombre.setText("");

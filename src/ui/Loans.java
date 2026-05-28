@@ -4,7 +4,7 @@ import java.awt.*;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-
+import Bitacora.GestorBitacora;
 import Material.GestorMaterial;
 import Usuario.GestorUser;
 import prestamos.PrestamoDevolver;
@@ -263,6 +263,8 @@ public class Loans extends JFrame {
                 prestamoDevolver.save();
                 gestorMaterial.save(); 
                 gestorUser.save();
+             // Registrar en la bitácora
+                GestorBitacora.registrar("PRESTAMO", "Material: " + codigo + " prestado al carnet: " + carnet);
                 actualizarTabla();   // Refrescamos la tabla
                 limpiarCampos();
                 mostrarMensaje(resultadoBackend, COLOR_SUCCESS);
@@ -297,6 +299,8 @@ public class Loans extends JFrame {
                 prestamoDevolver.save();
                 gestorMaterial.save(); 
                 gestorUser.save();
+                // Registrar en la bitácora
+                GestorBitacora.registrar("DEVOLUCION", "Material: " + codigo + " devuelto por el carnet: " + carnet);
                 actualizarTabla();
                 limpiarCampos();
                 mostrarMensaje(resultadoBackend, COLOR_SUCCESS);
