@@ -10,43 +10,49 @@ import Material.Material;
 import Material.Book;
 import Material.Magazine;
 
+// Ventana para administrar el catálogo de materiales (libros y revistas)
 public class Catalog extends JFrame {
 
     private static final long serialVersionUID = 1L;
 
-    private static final Color COLOR_PRIMARY = new Color(55, 80, 80);
-    private static final Color COLOR_SECONDARY = new Color(100, 100, 100);
-    private static final Color COLOR_HOVER = new Color(110, 110, 110);
-    private static final Color COLOR_BACKGROUND = new Color(250, 250, 250);
-    private static final Color COLOR_TEXT = Color.WHITE;
-    private static final Color COLOR_ERROR = new Color(220, 53, 69);
-    private static final Color COLOR_SUCCESS = new Color(40, 167, 69);
+    // Paleta de colores de la interfaz
+    private static final Color COLOR_PRIMARY    = new Color(55, 80, 80);    
+    private static final Color COLOR_SECONDARY  = new Color(100, 100, 100); 
+    private static final Color COLOR_HOVER      = new Color(110, 110, 110); 
+    private static final Color COLOR_BACKGROUND = new Color(250, 250, 250); 
+    private static final Color COLOR_TEXT       = Color.WHITE;              
+    private static final Color COLOR_ERROR      = new Color(220, 53, 69);   
+    private static final Color COLOR_SUCCESS    = new Color(40, 167, 69);   
 
     private JPanel contentPane;
 
+    // Campos del formulario
     private JTextField txtCode;
     private JTextField txtTitle;
     private JTextField txtAuthor;
-    private JTextField txtYear; 
-    private JComboBox<String> comboType; 
-    private JLabel lblError; 
+    private JTextField txtYear;
+    private JComboBox<String> comboType; // Selector para elegir entre Libro o Revista
+    private JLabel lblError;             // Mensajes de retroalimentación al usuario
 
+    // Tabla y su modelo de datos
     private JTable table;
     private DefaultTableModel model;
 
-    private GestorMaterial gestorMaterial;
+    private GestorMaterial gestorMaterial; // Gestiona la lista de materiales
 
+    // Constructor: carga los datos y construye la interfaz
     public Catalog() {
         gestorMaterial = new GestorMaterial();
         try {
-            gestorMaterial.cargar();
+            gestorMaterial.load(); // Intentamos cargar materiales desde el archivo
         } catch (IOException e) {
             System.out.println("No se encontraron materiales previos.");
         }
 
+        // Configuración de la ventana
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(1000, 650); 
-        setLocationRelativeTo(null);
+        setSize(1000, 650);
+        setLocationRelativeTo(null); // Centrar en pantalla
         setTitle("Gestión de Catálogo");
 
         contentPane = new JPanel();
@@ -61,14 +67,15 @@ public class Catalog extends JFrame {
         mainPanel.setBackground(COLOR_BACKGROUND);
         mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
-        mainPanel.add(createFormPanel(), BorderLayout.NORTH);
+        mainPanel.add(createFormPanel(),  BorderLayout.NORTH);
         mainPanel.add(createTablePanel(), BorderLayout.CENTER);
 
         contentPane.add(mainPanel, BorderLayout.CENTER);
 
-        actualizarTabla(gestorMaterial.getMateriales());
+        actualizarTabla(gestorMaterial.getMaterials()); // Mostramos todos los materiales al abrir
     }
 
+    // Banner superior con el título de la sección
     private JPanel createBanner() {
         JPanel banner = new JPanel();
         banner.setBackground(COLOR_PRIMARY);
@@ -84,6 +91,7 @@ public class Catalog extends JFrame {
         return banner;
     }
 
+    // Panel del formulario para agregar o administrar materiales
     private JPanel createFormPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -94,12 +102,13 @@ public class Catalog extends JFrame {
         title.setFont(new Font("Arial", Font.BOLD, 16));
         title.setForeground(COLOR_PRIMARY);
 
+        // Grilla de 5 filas: tipo, código, título, autor, año
         JPanel fieldsPanel = new JPanel();
         fieldsPanel.setLayout(new GridLayout(5, 2, 15, 10));
         fieldsPanel.setOpaque(false);
 
         fieldsPanel.add(createLabel("Tipo de Material"));
-        comboType = new JComboBox<>(new String[]{"BOOK", "MAGAZINE"});
+        comboType = new JComboBox<>(new String[]{"BOOK", "MAGAZINE"}); // Solo dos opciones posibles
         comboType.setFont(new Font("Arial", Font.PLAIN, 11));
         fieldsPanel.add(comboType);
 
@@ -125,19 +134,20 @@ public class Catalog extends JFrame {
         JPanel buttonPanel = new JPanel();
         buttonPanel.setOpaque(false);
 
-        JButton btnSave = createButton("Guardar");
-        JButton btnClear = createButton("Limpiar");
+        // Botones de acción del formulario
+        JButton btnSave   = createButton("Guardar");
+        JButton btnClear  = createButton("Limpiar");
         JButton btnSearch = createButton("Buscar por Título");
-        JButton btnDelete = createButton("Eliminar Seleccionado"); // NUEVO BOTÓN
-        JButton btnBack = createButton("Volver");
-        
-        // Cambiar el color del botón eliminar a rojo para advertir al usuario
+        JButton btnDelete = createButton("Eliminar Seleccionado");
+        JButton btnBack   = createButton("Volver");
+
+        // El botón eliminar tiene un color diferente para advertir al usuario
         btnDelete.setBackground(COLOR_ERROR);
-        
+
         buttonPanel.add(btnSave);
         buttonPanel.add(btnClear);
         buttonPanel.add(btnSearch);
-        buttonPanel.add(btnDelete); // Agregado al panel
+        buttonPanel.add(btnDelete);
         buttonPanel.add(btnBack);
 
         lblError = new JLabel("");
@@ -148,13 +158,13 @@ public class Catalog extends JFrame {
         footerPanel.add(buttonPanel, BorderLayout.CENTER);
         footerPanel.add(lblError, BorderLayout.SOUTH);
 
-        // EVENTOS
-        btnSave.addActionListener(e -> guardarMaterial());
-        btnClear.addActionListener(e -> limpiarCampos());
+        // Conectamos cada botón con su método correspondiente
+        btnSave.addActionListener(e   -> guardarMaterial());
+        btnClear.addActionListener(e  -> limpiarCampos());
         btnSearch.addActionListener(e -> buscarMaterial());
-        btnDelete.addActionListener(e -> eliminarMaterial()); // ACCIÓN NUEVA
-        btnBack.addActionListener(e -> {
-            new MainFrame().setVisible(true);
+        btnDelete.addActionListener(e -> eliminarMaterial());
+        btnBack.addActionListener(e   -> {
+            new MainFrame().setVisible(true); // Regresamos al menú principal
             dispose();
         });
 
@@ -162,15 +172,16 @@ public class Catalog extends JFrame {
         container.setLayout(new BorderLayout(0, 15));
         container.setOpaque(false);
 
-        container.add(title, BorderLayout.NORTH);
-        container.add(fieldsPanel, BorderLayout.CENTER);
-        container.add(footerPanel, BorderLayout.SOUTH);
+        container.add(title,        BorderLayout.NORTH);
+        container.add(fieldsPanel,  BorderLayout.CENTER);
+        container.add(footerPanel,  BorderLayout.SOUTH);
 
         panel.add(container, BorderLayout.NORTH);
 
         return panel;
     }
 
+    // Panel con la tabla donde se listan todos los materiales registrados
     private JPanel createTablePanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
@@ -182,6 +193,7 @@ public class Catalog extends JFrame {
         title.setForeground(COLOR_PRIMARY);
         panel.add(title, BorderLayout.NORTH);
 
+        // Definimos las columnas de la tabla de catálogo
         model = new DefaultTableModel();
         model.addColumn("Tipo");
         model.addColumn("Código");
@@ -197,8 +209,7 @@ public class Catalog extends JFrame {
         table.getTableHeader().setForeground(COLOR_TEXT);
         table.getTableHeader().setFont(new Font("Arial", Font.BOLD, 11));
 
-        // EVENTO EXTRA: Si el usuario hace clic en una fila de la tabla, 
-        // automáticamente se llenará el campo Código para facilitarle eliminarlo.
+        // Al seleccionar una fila, copiamos el código al campo de texto para facilitar operaciones
         table.getSelectionModel().addListSelectionListener(e -> {
             int filaSeleccionada = table.getSelectedRow();
             if (filaSeleccionada != -1) {
@@ -214,26 +225,30 @@ public class Catalog extends JFrame {
         return panel;
     }
 
+    // Guarda un nuevo material en el sistema después de validar los datos
     private void guardarMaterial() {
-        String tipo = comboType.getSelectedItem().toString();
+        String tipo   = comboType.getSelectedItem().toString();
         String codigo = txtCode.getText().trim();
         String titulo = txtTitle.getText().trim();
-        String autor = txtAuthor.getText().trim();
-        String anio = txtYear.getText().trim();
+        String autor  = txtAuthor.getText().trim();
+        String anio   = txtYear.getText().trim();
 
         lblError.setText("");
 
+        // Verificamos que todos los campos estén llenos
         if (codigo.isEmpty() || titulo.isEmpty() || autor.isEmpty() || anio.isEmpty()) {
             mostrarMensaje("Todos los campos son obligatorios.", COLOR_ERROR);
             return;
         }
 
-        if (gestorMaterial.existeCodigo(codigo)) {
+        // No permitimos duplicados: verificamos si ya existe ese código
+        if (gestorMaterial.existsCode(codigo)) { 
             mostrarMensaje("Error: El código '" + codigo + "' ya está registrado.", COLOR_ERROR);
             return;
         }
 
         try {
+            // Creamos el objeto correcto según el tipo seleccionado
             Material nuevoMaterial;
             if (tipo.equals("BOOK")) {
                 nuevoMaterial = new Book(codigo, anio, titulo, autor);
@@ -241,10 +256,10 @@ public class Catalog extends JFrame {
                 nuevoMaterial = new Magazine(codigo, anio, titulo, autor);
             }
 
-            gestorMaterial.agregar(nuevoMaterial);
-            gestorMaterial.guardar();
+            gestorMaterial.add(nuevoMaterial);   // Agregamos a la lista en memoria
+            gestorMaterial.save();               // Persistimos en el archivo CSV
 
-            actualizarTabla(gestorMaterial.getMateriales());
+            actualizarTabla(gestorMaterial.getMaterials()); // Refrescamos la tabla
             limpiarCampos();
             mostrarMensaje("Material guardado y sincronizado exitosamente.", COLOR_SUCCESS);
 
@@ -256,7 +271,7 @@ public class Catalog extends JFrame {
         }
     }
 
-    // NUEVA FUNCIÓN: Elimina el recurso del arraylist y reescribe el CSV
+    // Elimina el material cuyo código está en el campo de texto
     private void eliminarMaterial() {
         String codigo = txtCode.getText().trim();
         lblError.setText("");
@@ -266,24 +281,22 @@ public class Catalog extends JFrame {
             return;
         }
 
-        // Preguntar confirmación al usuario para evitar accidentes
+        // Pedimos confirmación antes de eliminar para evitar errores accidentales
         int confirmacion = JOptionPane.showConfirmDialog(
-            this, 
+            this,
             "¿Estás seguro de que deseas eliminar el material con código: " + codigo + "?",
-            "Confirmar eliminación", 
+            "Confirmar eliminación",
             JOptionPane.YES_NO_OPTION,
             JOptionPane.WARNING_MESSAGE
         );
 
         if (confirmacion == JOptionPane.YES_OPTION) {
-            // Llamamos al método nuevo que creamos en GestorMaterial
-            boolean eliminado = gestorMaterial.eliminar(codigo);
+            boolean eliminado = gestorMaterial.remove(codigo); // Intentamos eliminar de la lista
 
             if (eliminado) {
                 try {
-                    // Volver a guardar el archivo CSV sin el elemento borrado
-                    gestorMaterial.guardar();
-                    actualizarTabla(gestorMaterial.getMateriales());
+                    gestorMaterial.save();                          // Guardamos los cambios en el CSV
+                    actualizarTabla(gestorMaterial.getMaterials()); // Actualizamos la vista
                     limpiarCampos();
                     mostrarMensaje("Material eliminado correctamente de la base de datos.", COLOR_SUCCESS);
                 } catch (IOException e) {
@@ -296,25 +309,29 @@ public class Catalog extends JFrame {
         }
     }
 
+    // Filtra la tabla según el título escrito; si está vacío, muestra todo
     private void buscarMaterial() {
         String query = txtTitle.getText().trim();
         if (query.isEmpty()) {
-            actualizarTabla(gestorMaterial.getMateriales());
+            actualizarTabla(gestorMaterial.getMaterials()); // Sin filtro: mostramos todo
             mostrarMensaje("Mostrando catálogo completo.", COLOR_SECONDARY);
             return;
         }
 
-        java.util.ArrayList<Material> filtrados = gestorMaterial.buscarPorTitulo(query);
+        // Buscamos materiales que coincidan con el texto ingresado
+        java.util.ArrayList<Material> filtrados = gestorMaterial.findByTitle(query); 
         actualizarTabla(filtrados);
         mostrarMensaje("Se encontraron " + filtrados.size() + " coincidencias.", COLOR_PRIMARY);
     }
 
+    // Recarga la tabla con la lista de materiales recibida como parámetro
     private void actualizarTabla(java.util.ArrayList<Material> lista) {
-        model.setRowCount(0); 
+        model.setRowCount(0); // Limpiamos las filas actuales
         for (Material m : lista) {
-            String tipoReal = (m instanceof Book) ? "Libro" : "Revista";
+            // Determinamos el tipo legible y el estado de disponibilidad
+            String tipoReal   = (m instanceof Book) ? "Libro" : "Revista";
             String estadoReal = m.isDisponible() ? "Disponible" : "Prestado";
-            
+
             model.addRow(new Object[]{
                 tipoReal,
                 m.getCode(),
@@ -326,6 +343,7 @@ public class Catalog extends JFrame {
         }
     }
 
+    // Limpia todos los campos del formulario y deselecciona la tabla
     private void limpiarCampos() {
         txtCode.setText("");
         txtTitle.setText("");
@@ -335,11 +353,13 @@ public class Catalog extends JFrame {
         table.clearSelection();
     }
 
+    // Muestra un mensaje en la etiqueta lblError con el color indicado
     private void mostrarMensaje(String texto, Color color) {
         lblError.setText(texto);
         lblError.setForeground(color);
     }
 
+    // Botón con estilo base; el botón "Eliminar" tiene su propio manejo de hover
     private JButton createButton(String text) {
         JButton button = new JButton(text);
         button.setFont(new Font("Arial", Font.PLAIN, 11));
@@ -350,9 +370,9 @@ public class Catalog extends JFrame {
         button.setCursor(new Cursor(Cursor.HAND_CURSOR));
         button.setOpaque(true);
 
+        // El botón de eliminar mantiene su color rojo incluso al salir el mouse
         button.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseEntered(java.awt.event.MouseEvent evt) {
-                // Solo cambia a gris si no es el botón de eliminar (el cual es rojo)
                 if (!button.getText().equals("Eliminar Seleccionado")) {
                     button.setBackground(COLOR_HOVER);
                 }
@@ -361,13 +381,14 @@ public class Catalog extends JFrame {
                 if (!button.getText().equals("Eliminar Seleccionado")) {
                     button.setBackground(COLOR_PRIMARY);
                 } else {
-                    button.setBackground(COLOR_ERROR);
+                    button.setBackground(COLOR_ERROR); // Vuelve al rojo al salir el mouse
                 }
             }
         });
         return button;
     }
 
+    // Campo de texto con borde gris claro y tamaño fijo
     private JTextField createTextField() {
         JTextField field = new JTextField();
         field.setFont(new Font("Arial", Font.PLAIN, 11));
@@ -376,6 +397,7 @@ public class Catalog extends JFrame {
         return field;
     }
 
+    // Etiqueta de texto con estilo secundario (gris)
     private JLabel createLabel(String text) {
         JLabel label = new JLabel(text);
         label.setFont(new Font("Arial", Font.PLAIN, 11));

@@ -7,26 +7,33 @@ import java.util.ArrayList;
 
 public class GestorMaterial {
 
-    private ArrayList<Material> materiales;
-    private static final Path ARCHIVO = Paths.get("materiales.csv");
+    // Lista que guarda todos los materiales en memoria
+    // Puede guardar Book y Magazine porque ambos son hijos de Material (polimorfismo)
+    private ArrayList<Material> materials;
 
+    // Ruta del archivo CSV donde se guardan los materiales
+    private static final Path FILE = Paths.get("materiales.csv");
+
+    // Constructor — inicia la lista vacía
     public GestorMaterial() {
-        materiales = new ArrayList<>();
+        materials = new ArrayList<>();
     }
 
-    // Agregar material
-    public void agregar(Material m) {
-        materiales.add(m);
+    // Agrega un material a la lista en memoria
+    public void add(Material m) {
+        materials.add(m);
     }
 
-    // Obtener lista
-    public ArrayList<Material> getMateriales() {
-        return materiales;
+    // Devuelve toda la lista de materiales
+    public ArrayList<Material> getMaterials() {
+        return materials;
     }
 
-    // Buscar por codigo
-    public Material buscarPorCodigo(String code) {
-        for (Material m : materiales) {
+    // Recorre la lista buscando el material por su código
+    // equalsIgnoreCase ignora mayúsculas — "LIB-001" es igual a "lib-001"
+    // Devuelve null si no lo encuentra
+    public Material findByCode(String code) {
+        for (Material m : materials) {
             if (m.getCode().equalsIgnoreCase(code)) {
                 return m;
             }
@@ -34,40 +41,47 @@ public class GestorMaterial {
         return null;
     }
 
-    // Buscar por titulo
-    public ArrayList<Material> buscarPorTitulo(String title) {
-        ArrayList<Material> resultado = new ArrayList<>();
-        for (Material m : materiales) {
+    // Busca materiales cuyo título contenga el texto buscado
+    // Útil para el buscador de la ventana Catálogo
+    public ArrayList<Material> findByTitle(String title) {
+        ArrayList<Material> result = new ArrayList<>();
+        for (Material m : materials) {
             if (m.getTitle().toLowerCase().contains(title.toLowerCase())) {
-                resultado.add(m);
+                result.add(m);
             }
         }
-        return resultado;
+        return result;
     }
 
-    // Verificar duplicado
-    public boolean existeCodigo(String code) {
-        return buscarPorCodigo(code) != null;
+    // Verifica si ya existe un material con ese código
+    // Reutiliza findByCode para no duplicar código
+    public boolean existsCode(String code) {
+        return findByCode(code) != null;
     }
-    
- // Eliminar material por codigo
-    public boolean eliminar(String code) {
-        Material m = buscarPorCodigo(code);
+
+    // Elimina un material de la lista buscándolo por código
+    // Devuelve true si lo encontró y eliminó, false si no existe
+    public boolean remove(String code) {
+        Material m = findByCode(code);
         if (m != null) {
-            materiales.remove(m);
+            materials.remove(m);
             return true;
         }
         return false;
     }
 
-    // Guardar ArrayList en CSV
-    public void guardar() throws IOException {
-        try (BufferedWriter out = Files.newBufferedWriter(ARCHIVO, StandardCharsets.UTF_8)) {
-            // Encabezado del CSV
+    // Guarda todos los materiales de la lista en el archivo CSV
+    // El try() cierra el archivo automáticamente aunque haya error
+    public void save() throws IOException {
+        try (BufferedWriter out = Files.newBufferedWriter(FILE, StandardCharsets.UTF_8)) {
+
+            // Primera línea del CSV — describe las columnas
             out.write("TIPO;CODIGO;AÑO;TITULO;AUTOR;DISPONIBLE");
             out.newLine();
-            // Datos
-            for (Material m : materiales) {
+
+            // Recorre la lista y escribe cada material en una línea
+            // instanceof detecta si es Book o Magazine para llamar su toArchivo()
+            for (Material m : materials) {
                 if (m instanceof Book) {
                     out.write(((Book) m).toArchivo());
                 } else if (m instanceof Magazine) {
@@ -78,39 +92,52 @@ public class GestorMaterial {
         }
     }
 
-    // Cargar CSV al ArrayList
-    public void cargar() throws IOException {
-        materiales.clear();
-        if (!Files.isRegularFile(ARCHIVO)) return;
+    // Carga los materiales del CSV a la lista en memoria
+    public void load() throws IOException {
 
-        try (BufferedReader in = Files.newBufferedReader(ARCHIVO, StandardCharsets.UTF_8)) {
-            String linea;
-            boolean primeraLinea = true;
-            while ((linea = in.readLine()) != null) {
-                // Salta la primera linea que es el encabezado
-                if (primeraLinea) {
-                    primeraLinea = false;
+        // Limpia la lista para no duplicar datos
+        materials.clear();
+
+        // Si el archivo no existe termina sin error
+        // Esto pasa la primera vez que se ejecuta el programa
+        if (!Files.isRegularFile(FILE)) return;
+
+        try (BufferedReader in = Files.newBufferedReader(FILE, StandardCharsets.UTF_8)) {
+            String line;
+            boolean firstLine = true;
+
+            // Lee línea por línea hasta que no haya más
+            while ((line = in.readLine()) != null) {
+
+                // Salta la primera línea porque es el encabezado
+                if (firstLine) {
+                    firstLine = false;
                     continue;
                 }
-                if (linea.isBlank()) continue;
-                if (linea.startsWith("BOOK")) {
-                    materiales.add(Book.fromArchivo(linea));
-                } else if (linea.startsWith("MAGAZINE")) {
-                    materiales.add(Magazine.fromArchivo(linea));
+
+                // Salta líneas vacías
+                if (line.isBlank()) continue;
+
+                // Revisa cómo empieza la línea para saber qué objeto crear
+                if (line.startsWith("BOOK")) {
+                    materials.add(Book.fromArchivo(line)); // reconstruye un Book
+                } else if (line.startsWith("MAGAZINE")) {
+                    materials.add(Magazine.fromArchivo(line)); // reconstruye un Magazine
                 }
             }
         }
     }
 
-    // Listar todos 
-    public void listarTodos() {
-        if (materiales.isEmpty()) {
-            System.out.println("No hay materiales registrados.");
+    // Imprime todos los materiales en la consola
+    // Útil para depurar y verificar que los datos están bien
+    public void listAll() {
+        if (materials.isEmpty()) {
+            System.out.println("No materials registered.");
             return;
         }
         int i = 1;
-        for (Material m : materiales) {
-            System.out.println(i + ". " + m);
+        for (Material m : materials) {
+            System.out.println(i + ". " + m); // llama toString() de cada material
             i++;
         }
     }

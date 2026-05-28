@@ -86,23 +86,6 @@ public class MainFrame extends JFrame {
         return panel;
     }
 
-    //  FILA NORMAL
-    private JPanel crearFila(String textoBoton, String descripcionTexto) {
-        JPanel fila = new JPanel(new BorderLayout(12, 0));
-        fila.setOpaque(false);
-        fila.setMaximumSize(new Dimension(350, 60));
-
-        JButton boton = crearBoton(textoBoton);
-
-        JLabel descripcion = new JLabel("<html><p style='font-size:10px;'>" + descripcionTexto + "</p></html>");
-        descripcion.setForeground(new Color(120, 120, 120));
-
-        fila.add(boton, BorderLayout.WEST);
-        fila.add(descripcion, BorderLayout.CENTER);
-
-        return fila;
-    }
-    
     //  FILA USUARIOS (CON ACCIÓN)
     private JPanel crearFilaUsuarios() {
         JPanel fila = new JPanel(new BorderLayout(12, 0));
