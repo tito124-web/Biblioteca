@@ -1,4 +1,4 @@
-package Material;
+package material;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;

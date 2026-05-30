@@ -1,4 +1,4 @@
-package Usuario;
+package usuario;
 
 public class Teacher extends User {
 

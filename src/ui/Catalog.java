@@ -4,11 +4,12 @@ import java.awt.*;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import Bitacora.GestorBitacora;
-import Material.GestorMaterial;
-import Material.Material;
-import Material.Book;
-import Material.Magazine;
+
+import bitacora.GestorBitacora;
+import material.Book;
+import material.GestorMaterial;
+import material.Magazine;
+import material.Material;
 
 // Ventana para administrar el catálogo de materiales (libros y revistas)
 public class Catalog extends JFrame {

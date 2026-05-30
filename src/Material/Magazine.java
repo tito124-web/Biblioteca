@@ -1,4 +1,4 @@
-package Material;
+package material;
 
 public class Magazine extends Material {
 

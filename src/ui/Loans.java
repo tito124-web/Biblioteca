@@ -4,10 +4,11 @@ import java.awt.*;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import Bitacora.GestorBitacora;
-import Material.GestorMaterial;
-import Usuario.GestorUser;
+
+import bitacora.GestorBitacora;
+import material.GestorMaterial;
 import prestamos.PrestamoDevolver;
+import usuario.GestorUser;
 import prestamos.Loan;
 
 // Ventana principal para gestionar los préstamos de materiales
@@ -317,8 +318,8 @@ public class Loans extends JFrame {
         model.setRowCount(0); // Limpiamos las filas anteriores
         for (Loan l : prestamoDevolver.getLoans()) {
             // Buscamos el nombre del usuario y el título del material por sus IDs
-            Usuario.User u       = gestorUser.findById(l.getUserId());
-            Material.Material m  = gestorMaterial.findByCode(l.getMaterialCode()); 
+            usuario.User u       = gestorUser.findById(l.getUserId());
+            material.Material m  = gestorMaterial.findByCode(l.getMaterialCode()); 
 
             // Si no encontramos los datos, mostramos "Desconocido" como respaldo
             String nombreUser = (u != null) ? u.getName() : "Desconocido";

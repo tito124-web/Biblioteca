@@ -4,10 +4,11 @@ import java.awt.*;
 import java.io.IOException;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import Bitacora.GestorBitacora;
-import Usuario.GestorUser;
-import Usuario.Student;
-import Usuario.Teacher;
+
+import bitacora.GestorBitacora;
+import usuario.GestorUser;
+import usuario.Student;
+import usuario.Teacher;
 
 public class User extends JFrame {
     private static final long serialVersionUID = 1L;
@@ -408,7 +409,7 @@ public class User extends JFrame {
             System.out.println("No hay datos previos.");
         }
 
-        for (Usuario.User u : gestorUser.getUsers()) {
+        for (usuario.User u : gestorUser.getUsers()) {
             if (u instanceof Student) {
                 Student s = (Student) u;
                 model.addRow(new Object[]{

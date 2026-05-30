@@ -1,4 +1,4 @@
-package Material;
+package material;
 
 // Book es un tipo de Material — hereda todos sus atributos y métodos
 public class Book extends Material {

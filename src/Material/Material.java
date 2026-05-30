@@ -1,4 +1,4 @@
-package Material;
+package material;
 
 // Clase abstracta  no se puede instanciar directamente
 // Solo sirve como base para Book y Magazine

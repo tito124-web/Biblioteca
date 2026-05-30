@@ -10,12 +10,12 @@ import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.util.ArrayList;
 
-import Material.GestorMaterial;
-import Material.Material;
-import Usuario.GestorUser;
-import Usuario.Student;
-import Usuario.Teacher;
-import Usuario.User;
+import material.GestorMaterial;
+import material.Material;
+import usuario.GestorUser;
+import usuario.Student;
+import usuario.Teacher;
+import usuario.User;
 
 // Clase que maneja toda la lógica de préstamos y devoluciones
 // Reutiliza GestorMaterial y GestorUser para no duplicar código

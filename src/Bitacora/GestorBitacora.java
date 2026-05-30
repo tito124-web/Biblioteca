@@ -1,4 +1,4 @@
-package Bitacora;
+package bitacora;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
